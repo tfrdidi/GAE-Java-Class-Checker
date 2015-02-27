@@ -1,5 +1,4 @@
 # GAE-Java-Class-Checker
-------------------------
 
 A small script to help you migrating a Java application to Google App Engine (GAE). It scans your Java source files and searches for Java packages that are not supported by GAE.
 
