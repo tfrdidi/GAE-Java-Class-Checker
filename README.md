@@ -1,9 +1,7 @@
 # GAE-Java-Class-Checker
-========================
+------------------------
 
 A small script to help you migrating a Java application to Google App Engine (GAE). It scans your Java source files and searches for Java packages that are not supported by GAE.
-
---------------------
 
 GAE does not support all classes of the Java SDK (see https://cloud.google.com/appengine/docs/java/jrewhitelist) hence it may be possible that your Java project uses Java classes that are not supported by Google App Engine.
 
