@@ -1,7 +1,12 @@
 import fnmatch, os, re
 import urllib2
 
-sourceDirectory = "wahlzeit"
+sourceDirectory = "/home/didi/Projekte/wahlzeit/src"
+
+# empirical list, based on the migration experience of wahlzeit
+gaeSupportedPackages = ["com.google.appengine", "com.googlecode.objectify", "javax.servlet", 
+	"org.apache.commons.fileupload", "org.apache.http", "com.google.common", "com.google.api", "javax.mail",]
+packageName = "org.wahlzeit"
 
 def getGAEJavaWhitelist():
 	packageLinePattern = re.compile("<li>[a-z|A-Z|\.]+</li>")
@@ -17,6 +22,15 @@ def printArrayLinewise(array):
 	for element in array:
 		print element
 
+def isImportSupported(importLine):
+	result = False
+	for supportedPackage in gaeSupportedPackages:
+		if supportedPackage in importLine:
+			result = True
+	if result == False and packageName in importLine:
+		result = True
+	return result
+
 
 importPattern = re.compile("import .+;")
 GAEJavaWhitelist = getGAEJavaWhitelist()
@@ -28,8 +42,9 @@ for root, dirnames, filenames in os.walk(sourceDirectory):
 		path = os.path.join(root, filename)
 		for line in open(path).readlines():
 			for match in re.finditer(importPattern, line):
-				if not sourceDirectory in line: 
-					package = line.split( )[1][:-1]
+				if not isImportSupported(line): 
+					lineSplit = line.split( )
+					package = lineSplit[len(lineSplit)-1][:-1]
 					if package not in GAEJavaWhitelist:
 						if path not in filesToAdjust:
 							filesToAdjust.append(path)
