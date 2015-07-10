@@ -1,4 +1,5 @@
-import fnmatch, os, re, urllib2
+import fnmatch, os, re, urllib2, collections
+from collections import defaultdict
 
 sourceDirectory = "/home/didi/Projekte/legacyWahlzeit/MigrateWahlzeitIntoTheCloud/src/main/java"
 
@@ -12,10 +13,9 @@ gaeSupportedPackages = ["com.google.common", "com.google.api",
 
 blacklistPackages = ["java.sql"]
 
-GAEWhitelistPath = 
-	"https://cloud.google.com/appengine/docs/java/jrewhitelist"
+GAEWhitelistPath = "https://cloud.google.com/appengine/docs/java/jrewhitelist"
 
-pathOffsetLen = len(sourceDirectory)+len(packageName)+2
+pathOffsetLen = len(sourceDirectory) + len(packageName) + 2
 
 def getGAEJavaWhitelist():
 	packageLinePattern = re.compile("<li>[a-z|A-Z|\.]+</li>")
@@ -42,14 +42,10 @@ def isImportSupported(importLine):
 		result = True
 	return result
 
-def printArrayLinewise(array):
-	for element in array:
-		print element
-
 
 importPattern = re.compile("import .+;")
 GAEJavaWhitelist = getGAEJavaWhitelist()
-filesToAdjust = []
+filesToAdjust = defaultdict(list)
 unsupportedPackages = []
 
 for root, dirnames, filenames in os.walk(sourceDirectory):
@@ -61,18 +57,20 @@ for root, dirnames, filenames in os.walk(sourceDirectory):
 					lineSplit = line.split( )
 					package = lineSplit[len(lineSplit)-1][:-1]
 					if package not in GAEJavaWhitelist:
-						shortPath = path[pathOffsetLen:]
-						if shortPath not in filesToAdjust:
-							filesToAdjust.append(shortPath)
+						shortPath = path[pathOffsetLen:len(path)-len(".java")]
+						filesToAdjust[shortPath].append(package)
 						if package not in unsupportedPackages:
 							unsupportedPackages.append(package)
 
 
-# print result
-print "potentially unsupported imports:"
+print `len(unsupportedPackages)` + " diffent potentially unsupported imported classes:"
 unsupportedPackages.sort()
-printArrayLinewise(unsupportedPackages)
+for element in unsupportedPackages:
+	print element
 
-print "\nfiles to adjust:"
-filesToAdjust.sort()
-printArrayLinewise(filesToAdjust)
+print "\n" + `len(filesToAdjust)` + " files to adjust:"
+test = collections.OrderedDict(sorted(filesToAdjust.items(), key=lambda t: t[0]))
+for k, v in test.items():
+	print(k + ' includes ')
+	for w in v:
+		print("\t" + w)
